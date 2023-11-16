@@ -1,7 +1,6 @@
 import { safe } from 'starfx';
 
 import { isErr, toFxResult } from './basic';
-// import { evalCall } from "./evalCall"
 import { matchCall } from './matchCall';
 import { createResult } from './resultUtils';
 
@@ -50,17 +49,18 @@ export function* callReturn<T>(
 ): any {
   const result = yield* safe(() => fn());
   /* 
-  the function itself doesn't throw, in the process but if it fails
-  this will throw an error, so we need to catch it here.
-  we can interpret as: if it's an unpacked error, then throw it.
+  The function itself doesn't throw in the process, but if it fails,
+  this will throw an error. So we need to catch it here.
+  We can interpret it as: if it's an unpacked error, then throw it.
 
-  when we get unpacked error? when the whole call fails not when we return an error.
-  somehow it makes sense, but it's not intuitive.
+  When do we get an unpacked error? When the whole call fails, not when we return an error.
+  Somehow it makes sense, but it's not intuitive
   */
   if (isErr(result)) {
-    console.log("error in callReturn, analize", fn());
-    console.log("error in callReturn, analize", fn.name, fn.toString(), fn);
-    console.log("error in callReturn, analize", result);
+
+    // console.log("error in callReturn 1, analyze", fn());
+    // console.log("error in callReturn 2, analyze", fn.name, fn.toString(), fn);
+    // console.log("error in callReturn 3, analyze", result);
 
     console.log("customErrorMessage", customErrorMessage);
     throw customErrorMessage || result.error.message;

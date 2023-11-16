@@ -1,7 +1,6 @@
-import type { Result, Operation } from "starfx";
-import { call } from "starfx";
+import { isErr, isOk, isResult } from './basic';
 
-import { isErr, isOk, isResult, noop } from "./basic";
+import type { Result } from "starfx";
 
 /**
  * Transforms a Result<T> into a Result<U> using the provided mapping function.
@@ -37,8 +36,6 @@ export function mapUnknown<T, U>(
 ): Result<U> {
   if (isOk(result)) {
     const intermediate = fn(result.value as T);
-    console.log("intermediate", intermediate);
-
     if (isResult(intermediate)) {
       return mapUnknown(intermediate as Result<T>, fn);
     }
@@ -166,42 +163,4 @@ export function coalesceResult<A, B, E>(
   }
   console.error("Malformed Result object");
   throw new Error("Malformed Result object");
-}
-
-//various attempts:
-
-function fourMapResult<A, E>(
-  result: { readonly ok: true; value: A } | { readonly ok: false; error: E },
-  mapOkIfOk: (value: A) => Operation<unknown> = () => noop(),
-  mapErrIfOk: (value: A) => Operation<unknown> = () => noop(),
-  mapOkIfErr: (error: E) => Operation<unknown> = () => noop(),
-  mapErrIfErr: (error: E) => Operation<unknown> = () => noop()
-) {
-  if (result.ok) {
-    mapOkIfOk(result.value);
-    mapErrIfOk(result.value);
-  } else if ("error" in result) {
-    mapOkIfErr(result.error);
-    mapErrIfErr(result.error);
-  }
-  throw new Error("Malformed Result object");
-}
-
-function* call4Dispatch<T>(
-  result: Result<T>,
-  fnOkifOk, // setData
-  fnErrifOk, // cleanupAnnontaion, OptionalInfo
-  fnOkifErr, // setErroredData or nullifyData,
-  fnErrifErr //setErrorMessage
-): Operation<void> {
-  yield* call(() =>
-    fourMapResult(
-      result,
-      (value) => fnOkifOk(value),
-      (value) => fnErrifOk(value),
-      (error) => fnOkifErr(error),
-      (error) => fnErrifErr(error)
-    )
-  );
-  return;
 }
